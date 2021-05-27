@@ -9,38 +9,35 @@ const prompt = require('prompt-sync')();
 //     input: process.stdin,
 //     output: process.stdout
 //   });
-   
+
 //   readline.question('Which bus stop?', stopPoint => {
 //     return `${stopPoint}`);
 //     readline.close();
 //   });
 async function run() {
-const stopPoint = prompt('Please input stopCode');
+     const stopPoint = prompt('Please input stopCode');
 
 
-const output = await fetch(`https://api.tfl.gov.uk/StopPoint/${stopPoint}/Arrivals`)
-     .then(response => response.json())
-    //  .then(body => console.log(body))
-     .catch(err => console.log(err));
-    // console.log(output);
-const sortedByArrivalTimeStopPoint = output.sort(function(busA, busB) {
+     const output = await fetch(`https://api.tfl.gov.uk/StopPoint/${stopPoint}/Arrivals`)
+          .then(response => response.json())
+          //  .then(body => console.log(body))
+          .catch(err => console.log(err));
+     // console.log(output);
+     const sortedByArrivalTimeStopPoint = output.sort(function (busA, busB) {
           return busA.timeToStation - busB.timeToStation
      });
 
-for (let i =0; i < 5; i++) {
-    console.log('\nBus: ' + (i+1));
-    console.log('route:' + sortedByArrivalTimeStopPoint[i].lineName);
-    console.log('destination:' + sortedByArrivalTimeStopPoint[i].destinationName);
-    console.log('in '+ Math.ceil(sortedByArrivalTimeStopPoint[i].timeToStation/60) + ' mins');
-    // console.log('in'+ Math.round(sortedByArrivalTimeStopPoint[i].timeToStation/60) + 'mins');
+     for (let i = 0; i < 5; i++) {
+          console.log('\nBus: ' + (i + 1));
+          console.log('route:' + sortedByArrivalTimeStopPoint[i].lineName);
+          console.log('destination: ' + sortedByArrivalTimeStopPoint[i].destinationName);
+          console.log('in ' + Math.ceil(sortedByArrivalTimeStopPoint[i].timeToStation / 60) + ' mins');
+          // console.log('in'+ Math.round(sortedByArrivalTimeStopPoint[i].timeToStation/60) + 'mins');
      }
 }
- run()
+run()
 
-// - print a list of the next five buses at that stop code, ==> sorted by "timeToStation"
-// -  routes: "lineName"
-// -  destinationName
-// -  time until they arrive in minutes. "time to station"
+
 
 
 
@@ -54,18 +51,18 @@ for (let i =0; i < 5; i++) {
     //  function toJson(response) {
     //     return response.json()
     // }
-    
+
     // async function run() {
     //     const input = prompt("What postcode would you like to search for?  ")
-    
+
     //     const output = await fetch(`http://api.postcodes.io/postcodes/${input}`)
     //         .then(toJson)
     //         .catch(err => console.log(err))
     //         .finally(_ => console.log("Done"));
-    
+
     //     console.log(output)
     // }
-    
+
     // run()
-    
+
 

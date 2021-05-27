@@ -19,11 +19,13 @@ const nearestBusStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat
     .then(response => response.json())
    // .then(body => console.log(body))
     .catch(err => console.log(err));
-const stopPoint1 = nearestBusStops.stopPoints[0];
 
+const stopPoint1 = nearestBusStops.stopPoints[0];
+const naptanId = stopPoint1.lineGroup[0].naptanIdReference;
+// const naptanId = '490008660N'  
 console.log(stopPoint1.commonName)
-console.log(stopPoint1.naptanId)
-const naptanId = '490008660N'  //stopPoint1.naptanId
+console.log(naptanId)
+
 // get next arrival bus from 
 const nextArrivalBusStop1 = await fetch(`https://api.tfl.gov.uk/StopPoint/${naptanId}/Arrivals`) 
      .then(response => response.json())
