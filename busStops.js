@@ -1,10 +1,23 @@
 const fetch = require('node-fetch')
 const prompt = require('prompt-sync')();
 
+const winston = require('winston');
+const logger = winston.createLogger({
+    levels: winston.config.syslog.levels,
+    transports: [
+    //   new winston.transports.Console({ level: 'error' }),
+      new winston.transports.File({
+        filename: 'combined.log',
+        level: 'info'
+      })
+    ]
+  })
+
+
 async function run() {
     // get userinput - postcode    
     const postcode = prompt('Please input postcode');
-
+    const timeStamp = new Date()
     try {
         // get lat/lon from postcode API
         const geoLocation = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
@@ -34,7 +47,7 @@ async function run() {
                 // console.log(output);
                 //console.log(nextArrivalBusStop)
 
-                if (nextArrivalBusStop) {
+                if (nextArrivalBusStop.length > 0) {
                     const sortedByArrivalTimeStopPoint = nextArrivalBusStop.sort(function (busA, busB) {
                         return busA.timeToStation - busB.timeToStation
                     });
@@ -50,14 +63,17 @@ async function run() {
                     }
                 } else {
                     console.log('There are no buses coming at this stop.')
+                    logger.log('info', `no buses arriving at this stop - Naptan ID: ${naptanId} at ${timeStamp}`)
                 }
             }
         } else {
             console.log('There are no nearby bus stops.')
+            logger.log('info', `Valid postcode, no nearby bus stops, user input: ${postcode}`)
         }
 
     } catch (error) {
-        console.log('Invalid London postcode, please try again.');
+        console.log( 'Invalid London postcode, please try again.');
+        logger.log('error',`Invalid London postcode, user input: ${postcode}`);
         const rerun = prompt('Type 1 to try again ');
          if (rerun === "1") {
              run();
