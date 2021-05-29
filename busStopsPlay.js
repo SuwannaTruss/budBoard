@@ -1,13 +1,35 @@
 const fetch = require('node-fetch')
 const prompt = require('prompt-sync')();
 // logger 
-const winston = require('winston');
-const logger = winston.createLogger({
-    levels: winston.config.syslog.levels,
+const { createLogger, format, transports } = require('winston');
+const { combine, timestamp, printf } = format;
+const LEVEL = Symbol.for('level');
+
+// Log only the messages the match 'level'
+function filterOnly(level) {
+    return format(function (info) {
+        if (info[LEVEL] === level) {
+            return info;
+        }
+    })();
+}
+const logFormat = printf(({ level, message, timestamp }) => {
+    return `${timestamp} ${level}: ${message}`;
+});
+const logger = createLogger({
     transports: [
-      new winston.transports.File({
-        filename: 'combined.log',
-        level: 'info'
+      new transports.File({
+        level: 'error',
+        format: combine(
+            timestamp(),
+            logFormat
+        ),
+        filename: 'logs/errors.log',  
+      }),
+      new transports.File({
+        level: 'info',
+        format: filterOnly('info'),
+        filename: 'logs/validPostcodeInput.log', 
       })
     ]
   })
@@ -15,13 +37,17 @@ const logger = winston.createLogger({
 async function run() {
     // get userinput - postcode    
     const postcode = prompt('Please input postcode: ');
-    const timeStamp = new Date()
+    const timeStamp = new Date();
+
     try {
         // get lat/lon from postcode API
         const geoLocation = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
             .then(response => response.json())
             .catch(err => console.log(err));
 
+        if (!geoLocation.length) {
+            logger.log('info', {postcode: `${geoLocation.result.postcode}`, region: `${geoLocation.result.region}`, timestamp: `${timeStamp}`});
+        }   
         const lat = geoLocation.result.latitude;
         const lon = geoLocation.result.longitude;
 
@@ -59,18 +85,23 @@ async function run() {
                 // log to console and logger that there are no buses arriving at the stop
                 } else {
                     console.log('There are no buses coming at this stop.')
-                    logger.log('info', `no buses arriving at this stop - Naptan ID: ${naptanId} at ${timeStamp}`)
+                    logger.log('error', `no buses arriving at this stop - Naptan ID: ${naptanId}`)
                 }
             }
         // log to console and logger that there are no nearby bus stops to a valid postcode
         } else {
-            console.log('There are no nearby bus stops.')
-            logger.log('info', `Valid postcode, no nearby bus stops, user input: ${postcode}`)
+            if (geoLocation.result.region !== "London") {
+                console.log(`TFL does not have a service in your area.`);
+                logger.log('error',`Postcode is not in the London area, user input: ${postcode}`);
+            } else {
+                console.log('There are no nearby bus stops.')
+                logger.log('error', `Valid postcode, no nearby bus stops, user input: ${postcode}`)
+            }
         }
     // catch an error if the postcode entered is invalid & invite user to give correct postcode
     } catch (error) {
-        console.log( 'Invalid London postcode, please try again.');
-        logger.log('error',`Invalid London postcode, user input: ${postcode}`);
+        console.log( 'Invalid postcode.');
+        logger.log('error',`Invalid postcode, user input: ${postcode}`);
         const rerun = prompt('Type 1 to try again ');
          if (rerun === "1") {
              run();

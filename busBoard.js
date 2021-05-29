@@ -1,28 +1,13 @@
 const fetch = require('node-fetch')
 const prompt = require('prompt-sync')();
 
-//get user input from console
-// fetch(`https://api.tfl.gov.uk/StopPoint/${x}/Arrivals`)
-
-// this one, cannot use outside loop
-// const readline = require('readline').createInterface({
-//     input: process.stdin,
-//     output: process.stdout
-//   });
-
-//   readline.question('Which bus stop?', stopPoint => {
-//     return `${stopPoint}`);
-//     readline.close();
-//   });
 async function run() {
-     const stopPoint = prompt('Please input stopCode');
-
-
+     const stopPoint = prompt('Please input stopCode: ');   
      const output = await fetch(`https://api.tfl.gov.uk/StopPoint/${stopPoint}/Arrivals`)
           .then(response => response.json())
           //  .then(body => console.log(body))
           .catch(err => console.log(err));
-     // console.log(output);
+          // console.log(output);
      const sortedByArrivalTimeStopPoint = output.sort(function (busA, busB) {
           return busA.timeToStation - busB.timeToStation
      });
