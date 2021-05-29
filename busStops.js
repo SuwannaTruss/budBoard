@@ -16,13 +16,11 @@ async function run() {
         const lon = geoLocation.result.longitude;
 
         // get nearest busStops in radius 500m from Tfl API
-        const nearestBusStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram&radius=100`)
+        const nearestBusStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram&radius=500`)
             .then(response => response.json())
             // .then(body => console.log(body))
             .catch(err => console.log(err));
         
-            console.log(nearestBusStops.stopPoints)
-
         if (nearestBusStops.stopPoints.length >= 2) {
             for (let i = 0; i < 2; i++) {
                 const naptanId = nearestBusStops.stopPoints[i].naptanId;
