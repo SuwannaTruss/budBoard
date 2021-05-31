@@ -39,7 +39,8 @@ async function run() {
 
         const nearestTwoStops = [];
         const naptanIdTwoStops = [];
-        // aaaa: [
+        // maybe change the 2 arrays to object 
+        //aaaa: [
         //     {natanid: SVGPathSegLinetoVerticalRel,
         //     name: kkkk},
         //     {
@@ -92,19 +93,6 @@ async function run() {
                 console.log('Thank you, have a good journey!');
             }
 
-            // const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${naptanId}?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
-            //     `)
-            //     .then(response => response.json())
-            //     .catch(err => console.log(err));
-
-            // //journey summary
-            // console.log(`\nTime to bus stop: ${directionsToBusStop.journeys[0].duration} mins`)
-            // // console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[0].descriptionHeading);
-
-            // // walking to busstop:
-            // for (let i = 0; i < directionsToBusStop.journeys[0].legs[0].instruction.steps.length; i++) {
-            //     console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[i].descriptionHeading + ' ' + directionsToBusStop.journeys[0].legs[0].instruction.steps[i].description)
-            // }
             // log to console and logger that there are no nearby bus stops to a valid postcode
         } else {
             console.log('There are no nearby bus stops.')
@@ -114,11 +102,8 @@ async function run() {
     } 
 } catch (error) {
         console.log(error);
-        // logger.log('error', `line 116 - Invalid London postcode, user input: ${postcode}`);
-        // const rerun = prompt('Type 1 to try again ');
-        // if (rerun === "1") {
-        //     run();
-        // }
+        logger.log('error', error);
+      
     }
 }
 run()
