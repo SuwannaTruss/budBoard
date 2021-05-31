@@ -116,7 +116,6 @@ const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyR
 
             //journey summary
             console.log(`\nTime to bus stop: ${directionsToBusStop.journeys[0].duration} mins`)
-            // console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[0].descriptionHeading);
 
             // walking to busstop:
             for (let i = 0; i < directionsToBusStop.journeys[0].legs[0].instruction.steps.length; i++) {
