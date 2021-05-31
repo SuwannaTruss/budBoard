@@ -30,11 +30,22 @@ async function run() {
             .then(response => response.json())
             .catch(err => console.log(err));
         
+        const nearestTwoStops = [];  
+        const naptanIdTwoStops = [];
+        // aaaa: [
+        //     {natanid: SVGPathSegLinetoVerticalRel,
+        //     name: kkkk},
+        //     {
+
+        //     }
+        // ]
         if (nearestBusStops.stopPoints.length >= 2) {
             for (let i = 0; i < 2; i++) {
                 const naptanId = nearestBusStops.stopPoints[i].naptanId;
+                naptanIdTwoStops.push(naptanId)
+                nearestTwoStops.push(`${nearestBusStops.stopPoints[i].commonName}, ${nearestBusStops.stopPoints[i].indicator}`)
                 console.log('Bus stop name: ' + nearestBusStops.stopPoints[i].commonName + ' , ' + nearestBusStops.stopPoints[i].indicator)
-console.log(naptanId)
+
                 // get next arrival bus from the 2 closest stops using NaptanId
                 const nextArrivalBusStop = await fetch(`https://api.tfl.gov.uk/StopPoint/${naptanId}/Arrivals`)
                     .then(response => response.json())
@@ -54,14 +65,40 @@ console.log(naptanId)
                             console.log('destination: ' + sortedByArrivalTimeStopPoint[i].destinationName);
                             console.log('in ' + Math.ceil(sortedByArrivalTimeStopPoint[i].timeToStation / 60) + ' mins\n');
                         } 
-
                     }
+                    
                 // log to console and logger that there are no buses arriving at the stop
                 } else {
                     console.log('There are no buses coming at this stop.')
                     logger.log('info', `no buses arriving at this stop - Naptan ID: ${naptanId} at ${timeStamp}`)
                 }
             }
+                console.log(`Type 1 to get directions to the ${nearestTwoStops[0]}\nType 2 to get directions to the ${nearestTwoStops[1]}: `)
+                const directionsNeeded = prompt(`Type 1 or 2: `);
+                    if (directionsNeeded === "1") { 
+                        naptanId = naptanIdTwoStops[0];
+
+                        
+                    } else if (directionsNeeded === '2') {
+                        naptanId = naptanIdTwoStops[1]
+                        
+                    } else {
+                        console.log('Thank you, have a good journey!')
+                    }
+
+                const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${naptanId}?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
+                `)
+                        .then(response => response.json())
+                        .catch(err => console.log(err));
+                  
+                //journey summary
+                console.log(`\nTime to bus stop: ${directionsToBusStop.journeys[0].duration} mins`)
+                // console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[0].descriptionHeading);
+
+// walking to busstop:
+for (let i=0; i < directionsToBusStop.journeys[0].legs[0].instruction.steps.length; i++) {
+console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[i].descriptionHeading +' '+ directionsToBusStop.journeys[0].legs[0].instruction.steps[i].description)
+}  
         // log to console and logger that there are no nearby bus stops to a valid postcode
         } else {
             console.log('There are no nearby bus stops.')
@@ -78,3 +115,13 @@ console.log(naptanId)
     }
 }
 run()
+
+//https://api.tfl.gov.uk/Journey/JourneyResults/N103ju/to/490010602N?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
+
+//journey summary
+// journeys[0].duration
+// 
+
+// walking to busstop:
+// journeys[0].legs[0].instruction.steps[i].descriptionHeading + journeys[0].legs[0].instruction.steps[i].description
+
