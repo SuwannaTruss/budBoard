@@ -5,12 +5,12 @@ const winston = require('winston');
 const logger = winston.createLogger({
     levels: winston.config.syslog.levels,
     transports: [
-      new winston.transports.File({
-        filename: 'combined.log',
-        level: 'info'
-      })
+        new winston.transports.File({
+            filename: 'combined.log',
+            level: 'info'
+        })
     ]
-  })
+})
 
 async function run() {
     // get userinput - postcode    
@@ -20,8 +20,15 @@ async function run() {
         // get lat/lon from postcode API
         const geoLocation = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
             .then(response => response.json())
-            .catch(err => console.log(err));
-
+            .catch(err => console.log(err));   
+        if (geoLocation.status === 404) {
+            console.log('Invalid London postcode , please try again.');
+            logger.log('warning', `${geoLocation.error}, user input: ${postcode}`);
+            const rerun = prompt('Type 1 to try again ');
+            if (rerun === "1") {
+                    run();
+            }  
+        } else {
         const lat = geoLocation.result.latitude;
         const lon = geoLocation.result.longitude;
 
@@ -29,8 +36,8 @@ async function run() {
         const nearestBusStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram&radius=500`)
             .then(response => response.json())
             .catch(err => console.log(err));
-        
-        const nearestTwoStops = [];  
+
+        const nearestTwoStops = [];
         const naptanIdTwoStops = [];
         // aaaa: [
         //     {natanid: SVGPathSegLinetoVerticalRel,
@@ -64,64 +71,71 @@ async function run() {
                             console.log('route:' + sortedByArrivalTimeStopPoint[i].lineName);
                             console.log('destination: ' + sortedByArrivalTimeStopPoint[i].destinationName);
                             console.log('in ' + Math.ceil(sortedByArrivalTimeStopPoint[i].timeToStation / 60) + ' mins\n');
-                        } 
+                        }
                     }
-                    
-                // log to console and logger that there are no buses arriving at the stop
+
+                    // log to console and logger that there are no buses arriving at the stop
                 } else {
                     console.log('There are no buses coming at this stop.')
                     logger.log('info', `no buses arriving at this stop - Naptan ID: ${naptanId} at ${timeStamp}`)
                 }
             }
-                console.log(`Type 1 to get directions to the ${nearestTwoStops[0]}\nType 2 to get directions to the ${nearestTwoStops[1]}: `)
-                const directionsNeeded = prompt(`Type 1 or 2: `);
-                    if (directionsNeeded === "1") { 
-                        naptanId = naptanIdTwoStops[0];
+            console.log(`Type 1 to get directions to the ${nearestTwoStops[0]}\nType 2 to get directions to the ${nearestTwoStops[1]}: `)
+            const directionsNeeded = prompt(`Type 1 or 2: `);
+            if (directionsNeeded === "1") {
+                naptanId = naptanIdTwoStops[0];
+                
 
-                        
-                    } else if (directionsNeeded === '2') {
-                        naptanId = naptanIdTwoStops[1]
-                        
-                    } else {
-                        console.log('Thank you, have a good journey!')
-                    }
+            } else if (directionsNeeded === '2') {
+                naptanId = naptanIdTwoStops[1]
+                
+            } else {
+                console.log('Thank you, have a good journey!');
+            }
 
-                const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${naptanId}?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
-                `)
-                        .then(response => response.json())
-                        .catch(err => console.log(err));
-                  
-                //journey summary
-                console.log(`\nTime to bus stop: ${directionsToBusStop.journeys[0].duration} mins`)
-                // console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[0].descriptionHeading);
+            // const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${naptanId}?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
+            //     `)
+            //     .then(response => response.json())
+            //     .catch(err => console.log(err));
 
-// walking to busstop:
-for (let i=0; i < directionsToBusStop.journeys[0].legs[0].instruction.steps.length; i++) {
-console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[i].descriptionHeading +' '+ directionsToBusStop.journeys[0].legs[0].instruction.steps[i].description)
-}  
-        // log to console and logger that there are no nearby bus stops to a valid postcode
+            // //journey summary
+            // console.log(`\nTime to bus stop: ${directionsToBusStop.journeys[0].duration} mins`)
+            // // console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[0].descriptionHeading);
+
+            // // walking to busstop:
+            // for (let i = 0; i < directionsToBusStop.journeys[0].legs[0].instruction.steps.length; i++) {
+            //     console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[i].descriptionHeading + ' ' + directionsToBusStop.journeys[0].legs[0].instruction.steps[i].description)
+            // }
+            // log to console and logger that there are no nearby bus stops to a valid postcode
         } else {
             console.log('There are no nearby bus stops.')
             logger.log('info', `Valid postcode, no nearby bus stops, user input: ${postcode}`)
         }
-    // catch an error if the postcode entered is invalid & invite user to give correct postcode
-    } catch (error) {
-        console.log( 'Invalid London postcode, please try again.');
-        logger.log('error',`Invalid London postcode, user input: ${postcode}`);
-        const rerun = prompt('Type 1 to try again ');
-         if (rerun === "1") {
-             run();
-         }
+        // catch an error if the postcode entered is invalid & invite user to give correct postcode
+    } 
+} catch (error) {
+        console.log(error);
+        // logger.log('error', `line 116 - Invalid London postcode, user input: ${postcode}`);
+        // const rerun = prompt('Type 1 to try again ');
+        // if (rerun === "1") {
+        //     run();
+        // }
     }
 }
 run()
 
-//https://api.tfl.gov.uk/Journey/JourneyResults/N103ju/to/490010602N?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
+async function walkingDirection() {
+const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${naptanId}?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
+                `)
+                .then(response => response.json())
+                .catch(err => console.log(err));
 
-//journey summary
-// journeys[0].duration
-// 
+            //journey summary
+            console.log(`\nTime to bus stop: ${directionsToBusStop.journeys[0].duration} mins`)
+            // console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[0].descriptionHeading);
 
-// walking to busstop:
-// journeys[0].legs[0].instruction.steps[i].descriptionHeading + journeys[0].legs[0].instruction.steps[i].description
-
+            // walking to busstop:
+            for (let i = 0; i < directionsToBusStop.journeys[0].legs[0].instruction.steps.length; i++) {
+                console.log(directionsToBusStop.journeys[0].legs[0].instruction.steps[i].descriptionHeading + ' ' + directionsToBusStop.journeys[0].legs[0].instruction.steps[i].description)
+            }
+        }
