@@ -84,11 +84,10 @@ async function run() {
             const directionsNeeded = prompt(`Type 1 or 2: `);
             if (directionsNeeded === "1") {
                 naptanId = naptanIdTwoStops[0];
-                
-
+                walkingDirection(postcode, naptanId);
             } else if (directionsNeeded === '2') {
                 naptanId = naptanIdTwoStops[1]
-                
+                walkingDirection(postcode, naptanId);
             } else {
                 console.log('Thank you, have a good journey!');
             }
@@ -124,7 +123,7 @@ async function run() {
 }
 run()
 
-async function walkingDirection() {
+async function walkingDirection(postcode, naptanId) {
 const directionsToBusStop = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${postcode}/to/${naptanId}?timeIs=Arriving&journeyPreference=LeastInterchange&mode=walking&accessibilityPreference=NoRequirements&walkingSpeed=Slow&cyclePreference=None&bikeProficiency=Easy
                 `)
                 .then(response => response.json())
